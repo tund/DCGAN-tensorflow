@@ -7,6 +7,10 @@ import tensorflow as tf
 import numpy as np
 from six.moves import xrange
 
+from os.path import expanduser
+HOME = expanduser("~")
+DATA_DIR = os.path.join(HOME, 'rdata/models/DCGAN/DCGAN-tensorflow')
+
 from ops import *
 from utils import *
 
@@ -147,7 +151,7 @@ class DCGAN(object):
     if config.dataset == 'mnist':
       data_X, data_y = self.load_mnist()
     else:
-      data = glob(os.path.join("./data", config.dataset, self.input_fname_pattern))
+      data = glob(os.path.join(DATA_DIR, config.dataset, self.input_fname_pattern))
     #np.random.shuffle(data)
 
     d_optim = tf.train.AdamOptimizer(config.learning_rate, beta1=config.beta1) \
@@ -462,7 +466,7 @@ class DCGAN(object):
         return tf.nn.sigmoid(deconv2d(h2, [self.batch_size, s_h, s_w, self.c_dim], name='g_h3'))
 
   def load_mnist(self):
-    data_dir = os.path.join("./data", self.dataset_name)
+    data_dir = os.path.join(DATA_DIR, self.dataset_name)
     
     fd = open(os.path.join(data_dir,'train-images-idx3-ubyte'))
     loaded = np.fromfile(file=fd,dtype=np.uint8)

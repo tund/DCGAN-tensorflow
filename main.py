@@ -8,6 +8,7 @@ from utils import pp, visualize, to_json, show_all_variables
 import tensorflow as tf
 
 flags = tf.app.flags
+flags.DEFINE_string("device", "/gpu:0", "Device (/cpu or /gpu:x)")
 flags.DEFINE_integer("epoch", 25, "Epoch to train [25]")
 flags.DEFINE_float("learning_rate", 0.0002, "Learning rate of for adam [0.0002]")
 flags.DEFINE_float("beta1", 0.5, "Momentum term of adam [0.5]")
@@ -43,57 +44,60 @@ def main(_):
   #gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.333)
   run_config = tf.ConfigProto()
   run_config.gpu_options.allow_growth=True
+  run_config.allow_soft_placement = True
 
-  with tf.Session(config=run_config) as sess:
-    if FLAGS.dataset == 'mnist':
-      dcgan = DCGAN(
-          sess,
-          input_width=FLAGS.input_width,
-          input_height=FLAGS.input_height,
-          output_width=FLAGS.output_width,
-          output_height=FLAGS.output_height,
-          batch_size=FLAGS.batch_size,
-          sample_num=FLAGS.batch_size,
-          y_dim=10,
-          c_dim=1,
-          dataset_name=FLAGS.dataset,
-          input_fname_pattern=FLAGS.input_fname_pattern,
-          is_crop=FLAGS.is_crop,
-          checkpoint_dir=FLAGS.checkpoint_dir,
-          sample_dir=FLAGS.sample_dir)
-    else:
-      dcgan = DCGAN(
-          sess,
-          input_width=FLAGS.input_width,
-          input_height=FLAGS.input_height,
-          output_width=FLAGS.output_width,
-          output_height=FLAGS.output_height,
-          batch_size=FLAGS.batch_size,
-          sample_num=FLAGS.batch_size,
-          c_dim=FLAGS.c_dim,
-          dataset_name=FLAGS.dataset,
-          input_fname_pattern=FLAGS.input_fname_pattern,
-          is_crop=FLAGS.is_crop,
-          checkpoint_dir=FLAGS.checkpoint_dir,
-          sample_dir=FLAGS.sample_dir)
+  print("Device = ", FLAGS.device)
+  with tf.device(FLAGS.device):
+      with tf.Session(config=run_config) as sess:
+        if FLAGS.dataset == 'mnist':
+          dcgan = DCGAN(
+              sess,
+              input_width=FLAGS.input_width,
+              input_height=FLAGS.input_height,
+              output_width=FLAGS.output_width,
+              output_height=FLAGS.output_height,
+              batch_size=FLAGS.batch_size,
+              sample_num=FLAGS.batch_size,
+              y_dim=10,
+              c_dim=1,
+              dataset_name=FLAGS.dataset,
+              input_fname_pattern=FLAGS.input_fname_pattern,
+              is_crop=FLAGS.is_crop,
+              checkpoint_dir=FLAGS.checkpoint_dir,
+              sample_dir=FLAGS.sample_dir)
+        else:
+          dcgan = DCGAN(
+              sess,
+              input_width=FLAGS.input_width,
+              input_height=FLAGS.input_height,
+              output_width=FLAGS.output_width,
+              output_height=FLAGS.output_height,
+              batch_size=FLAGS.batch_size,
+              sample_num=FLAGS.batch_size,
+              c_dim=FLAGS.c_dim,
+              dataset_name=FLAGS.dataset,
+              input_fname_pattern=FLAGS.input_fname_pattern,
+              is_crop=FLAGS.is_crop,
+              checkpoint_dir=FLAGS.checkpoint_dir,
+              sample_dir=FLAGS.sample_dir)
 
-    show_all_variables()
-    if FLAGS.is_train:
-      dcgan.train(FLAGS)
-    else:
-      if not dcgan.load(FLAGS.checkpoint_dir):
-        raise Exception("[!] Train a model first, then run test mode")
-      
+        show_all_variables()
+        if FLAGS.is_train:
+          dcgan.train(FLAGS)
+        else:
+          if not dcgan.load(FLAGS.checkpoint_dir):
+            raise Exception("[!] Train a model first, then run test mode")
 
-    # to_json("./web/js/layers.js", [dcgan.h0_w, dcgan.h0_b, dcgan.g_bn0],
-    #                 [dcgan.h1_w, dcgan.h1_b, dcgan.g_bn1],
-    #                 [dcgan.h2_w, dcgan.h2_b, dcgan.g_bn2],
-    #                 [dcgan.h3_w, dcgan.h3_b, dcgan.g_bn3],
-    #                 [dcgan.h4_w, dcgan.h4_b, None])
 
-    # Below is codes for visualization
-    OPTION = 1
-    visualize(sess, dcgan, FLAGS, OPTION)
+        # to_json("./web/js/layers.js", [dcgan.h0_w, dcgan.h0_b, dcgan.g_bn0],
+        #                 [dcgan.h1_w, dcgan.h1_b, dcgan.g_bn1],
+        #                 [dcgan.h2_w, dcgan.h2_b, dcgan.g_bn2],
+        #                 [dcgan.h3_w, dcgan.h3_b, dcgan.g_bn3],
+        #                 [dcgan.h4_w, dcgan.h4_b, None])
+
+        # Below is codes for visualization
+        OPTION = 1
+        visualize(sess, dcgan, FLAGS, OPTION)
 
 if __name__ == '__main__':
   tf.app.run()

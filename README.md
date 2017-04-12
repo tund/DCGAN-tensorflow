@@ -100,6 +100,10 @@ Details of the histogram of true and fake result of discriminator (with custom d
 ![d__hist](assets/d__hist.png)
 
 
+## Notes from `tund`
+* Error: module 'scipy.misc' has no attribute 'imsave'. Fix by installing pillow, e.g., `conda install pillow`
+
+
 ## Author
 
 Taehoon Kim / [@carpedm20](http://carpedm20.github.io/)
