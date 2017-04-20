@@ -7,6 +7,8 @@ import tensorflow as tf
 import numpy as np
 from six.moves import xrange
 
+import pickle
+
 from os.path import expanduser
 HOME = expanduser("~")
 DATA_DIR = os.path.join(HOME, 'rdata/models/DCGAN/DCGAN-tensorflow')
@@ -150,6 +152,8 @@ class DCGAN(object):
     """Train DCGAN"""
     if config.dataset == 'mnist':
       data_X, data_y = self.load_mnist()
+    elif config.dataset == 'cifar10':
+      data = self.load_cifar10()
     else:
       data = glob(os.path.join(DATA_DIR, config.dataset, self.input_fname_pattern))
     #np.random.shuffle(data)
@@ -174,6 +178,8 @@ class DCGAN(object):
     if config.dataset == 'mnist':
       sample_inputs = data_X[0:self.sample_num]
       sample_labels = data_y[0:self.sample_num]
+    elif config.dataset == 'cifar10':
+      sample_inputs = data[0:self.sample_num]
     else:
       sample_files = data[0:self.sample_num]
       sample = [
@@ -201,15 +207,19 @@ class DCGAN(object):
     for epoch in xrange(config.epoch):
       if config.dataset == 'mnist':
         batch_idxs = min(len(data_X), config.train_size) // config.batch_size
+      elif config.dataset == 'cifar10':
+        batch_idxs = min(len(data), config.train_size) // config.batch_size
       else:      
         data = glob(os.path.join(
-          "./data", config.dataset, self.input_fname_pattern))
+          DATA_DIR, config.dataset, self.input_fname_pattern))
         batch_idxs = min(len(data), config.train_size) // config.batch_size
 
       for idx in xrange(0, batch_idxs):
         if config.dataset == 'mnist':
           batch_images = data_X[idx*config.batch_size:(idx+1)*config.batch_size]
           batch_labels = data_y[idx*config.batch_size:(idx+1)*config.batch_size]
+        elif config.dataset == 'cifar10':
+          batch_images = data[idx*config.batch_size:(idx+1)*config.batch_size]
         else:
           batch_files = data[idx*config.batch_size:(idx+1)*config.batch_size]
           batch = [
@@ -501,6 +511,11 @@ class DCGAN(object):
       y_vec[i,y[i]] = 1.0
     
     return X/255.,y_vec
+
+  def load_cifar10(self):
+    data_dir = os.path.join(DATA_DIR, self.dataset_name, "cifar-10-batches-py/cifar10")
+    d = pickle.load(open(data_dir, "rb"))
+    return d['data'].astype(np.float32).reshape([-1, 32, 32, 3]) / 127.5 - 1.
 
   @property
   def model_dir(self):

@@ -47,6 +47,7 @@ def main(_):
   run_config.allow_soft_placement = True
 
   print("Device = ", FLAGS.device)
+  print("Training? = ", FLAGS.is_train)
   with tf.device(FLAGS.device):
       with tf.Session(config=run_config) as sess:
         if FLAGS.dataset == 'mnist':
